@@ -1,0 +1,6 @@
+{
+  "port": "3038",
+  "logger": {
+    "requestLogger": "true"
+  }
+}

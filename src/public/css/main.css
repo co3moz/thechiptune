@@ -1,0 +1,45 @@
+.navbar-mine {
+    background-color: #34495E;
+    background-image: none;
+    box-shadow: 0 2px 14px #2B3D50;
+    margin-top: 10px;
+}
+
+.progress-mine {
+    width: 300px;
+    margin: 10px 20px 0 0;
+}
+
+.progress-mine > .progress-bar {
+    background-color: #3F668D;
+}
+
+h5 {
+    margin: 0 0 5px 0;
+    word-wrap: break-word;
+    font-size: 10pt;
+}
+
+.btn-mine {
+    color: #fff !important;
+    background-color: #34495e !important;
+}
+
+.btn-mine:hover, .btn-mine.hover, .btn-mine:focus, .btn-mine:active, .btn-mine.active, .open > .dropdown-toggle.btn-mine {
+    color: #fff !important;
+    background-color: #415b76 !important;
+    border-color: #415b76 !important;
+}
+
+.btn-mine:active, .btn-mine.active, .open > .dropdown-toggle.btn-mine {
+    background: #2c3e50 !important;
+    border-color: #2c3e50 !important;
+}
+
+.thumbnail {
+    min-height: 125px !important;
+}
+
+body {
+    overflow-y: scroll;
+}
