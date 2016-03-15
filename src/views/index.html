@@ -49,6 +49,14 @@
             <button class="btn navbar-btn btn-mine btn-xs" type="button" ng-if="isPlaying" ng-click="pause()">
                 <span class="glyphicon glyphicon-pause"></span>
             </button>
+
+            <button class="btn navbar-btn btn-mine btn-xs" type="button" style="color: grey !important;" ng-if="isLoop == false" ng-click="loop(true)">
+                <span class="glyphicon glyphicon-repeat"></span>
+            </button>
+
+            <button class="btn navbar-btn btn-mine btn-xs" type="button" style="color: white !important;" ng-if="isLoop == true" ng-click="loop(false)">
+                <span class="glyphicon glyphicon-repeat"></span>
+            </button>
         </div>
     </nav>
 </div>
@@ -66,9 +74,9 @@
         <div class="col-sm-3 col-md-3 " ng-repeat="item in items | orderBy : ['-isDirectory', 'size']">
             <div class="thumbnail">
                 <div class="caption" style="text-align: center;">
-                    <h5>{{item.resource}}</h5>
-                    <p><a href="#" class="btn btn-embossed {{item.isDirectory ? 'btn-info' : 'btn-success'}}"
-                          role="button" ng-click="enter(item)">{{item.isDirectory ? "Open Folder": "Play (" +
+                    <h5>{{item.name || item.resource}}</h5>
+                    <p><a href="#" class="btn btn-embossed {{item.isDirectory ? 'btn-info' : 'btn-success'}} {{item.attribute}}"
+                          role="button" ng-click="enter(item)">{{item.isDirectory ? "Open Folder": "Play ." + item.attribute + "(" +
                         sizeConvert(item.size) + ")"}}</a>
                 </div>
             </div>

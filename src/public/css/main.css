@@ -43,3 +43,23 @@ h5 {
 body {
     overflow-y: scroll;
 }
+
+.xm {
+    color: #fff;
+    background-color: #cc5099;
+}
+
+.mod {
+    color: #fff;
+    background-color: #815ecc;
+}
+
+.it {
+    color: #fff;
+    background-color: #cc8c6e;
+}
+
+.s3m {
+    color: #fff;
+    background-color: #cc2833;
+}

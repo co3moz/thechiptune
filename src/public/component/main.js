@@ -2,9 +2,7 @@ var app = angular.module("theChiptuneApplication", []);
 app.constant('baseHref', '/base/index.html')
   .value('$sniffer', {history: true});
 app.controller("mainController", function ($scope, $http, $location, $browser) {
-
   var player = new ChiptuneJsPlayer();
-  window.anan = player;
   var location = $location.path().split("/");
   location.shift();
   if (location[0].length == "") {
@@ -20,6 +18,13 @@ app.controller("mainController", function ($scope, $http, $location, $browser) {
     }).then(function (response) {
       $scope.locationLength = location.length;
       $scope.previousLocation = location[location.length - 1] || "/";
+      response.data.forEach(function (item) {
+        if (item.isDirectory == false) {
+          var dot = item.resource.lastIndexOf(".");
+          item.attribute = item.resource.substring(dot + 1);
+          item.name = item.resource.substring(0, dot);
+        }
+      });
       $scope.items = response.data;
     });
   };
@@ -63,13 +68,18 @@ app.controller("mainController", function ($scope, $http, $location, $browser) {
       return $scope.branch(item.resource);
     } else {
       $scope.playing = item.resource;
-      player.load("/resource/get/" + location.join("/") + "/" + encodeURI(item.resource), function (buffer) {
-        player.play(buffer);
-        $browser.url("/" + location.join("/") + "#" + encodeURI(item.resource));
-        $scope.isPlaying = true;
-        $scope.duration = player.duration();
-        currentLocationOfMusic = 0.0;
-      });
+      $scope.replay = function () {
+        player.load("/resource/get/" + location.join("/") + "/" + encodeURI(item.resource), function (buffer) {
+          player.config.repeatCount = $scope.isLoop == true ? -1 : 0;
+          player.play(buffer);
+          $browser.url("/" + location.join("/") + "?play=" + encodeURI(item.resource) + ($scope.isLoop == true ? "&loop=true" : ""));
+          $scope.isPlaying = true;
+          $scope.duration = player.duration();
+          currentLocationOfMusic = 0.0;
+        });
+      };
+
+      $scope.replay();
     }
   };
 
@@ -89,12 +99,19 @@ app.controller("mainController", function ($scope, $http, $location, $browser) {
     return (size / 1024 / 1024 / 1024).toFixed(2) + "gb";
   };
 
-  var directPlay = $location.hash();
-  if(directPlay) {
+  var directPlay = $location.search().play;
+  $scope.isLoop = !!($location.search().loop || false);
+  $scope.branch();
+
+  $scope.loop = function (value) {
+    $scope.isLoop = value;
+    $scope.replay();
+  }
+
+  if (directPlay) {
     $scope.enter({resource: directPlay, isDirectory: false});
   }
 
-  $scope.branch();
 }).config(function ($locationProvider) {
   $locationProvider.html5Mode(true).hashPrefix('!');
 });

@@ -8,7 +8,7 @@ function ChiptuneJsConfig(repeatCount) {
 
 // player
 function ChiptuneJsPlayer(config) {
-  config || (config = new ChiptuneJsConfig(1));
+  config || (config = new ChiptuneJsConfig(-1));
 
   this.context = new ChiptuneAudioContext;
   this.destination = this.context.destination;
@@ -98,7 +98,7 @@ ChiptuneJsPlayer.prototype.play = function (buffer) {
   }
 
   // set config options on module
-  Module._openmpt_module_set_repeat_count(processNode.modulePtr, 0);
+  Module._openmpt_module_set_repeat_count(processNode.modulePtr, this.config.repeatCount);
 
   this.currentPlayingNode = processNode;
   processNode.connect(this.destination);
