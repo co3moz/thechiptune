@@ -1,5 +1,5 @@
 // audio context
-ChiptuneAudioContext = AudioContext || webkitAudioContext || WebkitAudioContext;
+var ChiptuneAudioContext = window.AudioContext || window.webkitAudioContext || window.WebkitAudioContext;
 
 // config
 function ChiptuneJsConfig(repeatCount) {
