@@ -133,7 +133,7 @@ ChiptuneJsPlayer.prototype.unpause = function () {
 
 ChiptuneJsPlayer.prototype.createLibopenmptNode = function (buffer, config) {
   var maxFramesPerChunk = 4096;
-  var processNode = this.context.createScriptProcessor(0, 0, 2);
+  var processNode = this.context.createScriptProcessor(maxFramesPerChunk, 0, 2);
   processNode.config = config;
   processNode.player = this;
   var byteArray = new Int8Array(buffer);
