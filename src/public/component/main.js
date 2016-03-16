@@ -36,12 +36,13 @@ app.controller("mainController", function ($scope, $http, $location, $browser) {
   };
 
   var currentLocationOfMusic = 0.0;
-  var intervalSpeed = 250;
+  var intervalSpeed = 1000;
   setInterval(function () {
     if ($scope.isPlaying) {
       $scope.percent = Math.min(100, currentLocationOfMusic / $scope.duration * 100);
       $scope.currentLocationOfMusic = currentLocationOfMusic;
       currentLocationOfMusic += intervalSpeed / 1000;
+      currentLocationOfMusic = currentLocationOfMusic % $scope.duration;
       $scope.$apply();
     }
   }, intervalSpeed);

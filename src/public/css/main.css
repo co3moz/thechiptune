@@ -1,8 +1,9 @@
 .navbar-mine {
     background-color: #4F8AC5;
     background-image: none;
-    box-shadow: 0 0px 6px #B6B6B6;
+    box-shadow: 0 0 6px #B6B6B6;
     margin-top: 10px;
+    border-radius: 44px;
 }
 
 .navbar-text {
@@ -25,8 +26,9 @@
 }
 
 .progress-mine {
-    width: 300px;
-    margin: 10px 20px 0 0;
+    width: 100px;
+    margin: 13px 20px 0 0;
+    height: 9px;
 }
 
 .progress-mine > .progress-bar {
@@ -89,4 +91,11 @@ body {
 
 .minutes {
     margin-left: -10px !important;
+}
+
+.gl {
+    height: 25px;
+    width: 100px;
+    transform: translateX(-10px) translateY(8px);
+    background-color: black;
 }
