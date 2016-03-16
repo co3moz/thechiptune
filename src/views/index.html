@@ -1,24 +1,23 @@
 <!-- AHA! a developer, you are welcome here -->
 <!DOCTYPE html>
-<html lang="en" ng-app="theChiptuneApplication">
+<html lang="en" ng-app="theChiptuneApplication" ng-controller="mainController">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <base href="/" />
+    <base href="/"/>
 
-    <title>theChiptune.com</title>
+    <title>thechiptune.com {{playing ? " - " + playing : ""}}</title>
 
     <!-- show me fancy styles-->
     <link href="/css/bootstrap.min.css" rel="stylesheet" type="text/css">
     <link href="/css/flat-ui.min.css" rel="stylesheet" type="text/css">
     <link href="/css/main.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
 
     <!-- show me handsome libraries-->
     <script src="/vendor/angular.js"></script>
-    <script src="/vendor/libopenmpt.min.js"></script>
-    <script src="/vendor/chiptune2.js"></script>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -27,12 +26,19 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body ng-controller="mainController">
+<body>
+<div ng-if="false"
+     style="position:fixed; width: 100%; height: 100%; background-color: #434343; color: white; z-index: 999">
+    <span style="position: fixed;top: 50%;left: 50%;transform: translateX(-50%) translateY(-50%);font-family: sans-serif;font-weight: 300;border-radius: 25px;box-shadow: 0 0 4px black; padding: 10px;background-color: #505050;">
+        Loading.. Please Wait
+    </span>
+</div>
+
 <div class="container">
-    <nav class="navbar navbar-inverse navbar-embossed navbar-mine" style="">
+    <nav class="navbar navbar-inverse navbar-embossed navbar-mine">
 
         <div class="navbar-header">
-            <a class="navbar-brand" href="#" ng-click="home()">theChiptune</a>
+            <a class="navbar-brand" href="#" ng-click="home()">thechiptune.com</a>
         </div>
 
         <form class="navbar-form navbar-right">
@@ -42,7 +48,8 @@
         </form>
 
         <div class="navbar-right">
-            <p class="navbar-text">{{playing || ""}}</p>
+            <p class="navbar-text" ng-if="playing">{{playing}}</p>
+            <p class="navbar-text minutes" ng-if="playing">{{numberToMinutes(currentLocationOfMusic)}}/{{numberToMinutes(duration)}}</p>
             <button class="btn navbar-btn btn-mine btn-xs" type="button" ng-if="!isPlaying" ng-click="play()">
                 <span class="glyphicon glyphicon-play"></span>
             </button>
@@ -50,12 +57,24 @@
                 <span class="glyphicon glyphicon-pause"></span>
             </button>
 
-            <button class="btn navbar-btn btn-mine btn-xs" type="button" style="color: grey !important;" ng-if="isLoop == false" ng-click="loop(true)">
+            <button class="btn navbar-btn btn-mine btn-xs" type="button" style="color: #4B7FB3 !important;"
+                    ng-if="isLoop == false" ng-click="loop(true)" title="Repeat mode: off">
                 <span class="glyphicon glyphicon-repeat"></span>
             </button>
 
-            <button class="btn navbar-btn btn-mine btn-xs" type="button" style="color: white !important;" ng-if="isLoop == true" ng-click="loop(false)">
+            <button class="btn navbar-btn btn-mine btn-xs" type="button" style="color: white !important;"
+                    ng-if="isLoop == true" ng-click="loop(false)" title="Repeat mode: on">
                 <span class="glyphicon glyphicon-repeat"></span>
+            </button>
+
+            <button class="btn navbar-btn btn-mine btn-xs" type="button" style="color: #4B7FB3 !important;"
+                    ng-if="isAuto == false" ng-click="auto(true)" title="Auto play next: off">
+                <span class="glyphicon glyphicon-sort-by-attributes"></span>
+            </button>
+
+            <button class="btn navbar-btn btn-mine btn-xs" type="button" style="color: white !important;"
+                    ng-if="isAuto == true" ng-click="auto(false)" title="Auto play next: on">
+                <span class="glyphicon glyphicon-sort-by-attributes"></span>
             </button>
         </div>
     </nav>
@@ -71,19 +90,28 @@
             </div>
         </div>
 
-        <div class="col-sm-3 col-md-3 " ng-repeat="item in items | orderBy : ['-isDirectory', 'size']">
-            <div class="thumbnail">
+        <div class="col-sm-3 col-md-3 " ng-repeat="item in (orderedItems = (items | orderBy : ['-isDirectory', 'size']))">
+            <div class="thumbnail {{playing == item.resource ? 'playing' :''}}">
                 <div class="caption" style="text-align: center;">
                     <h5>{{item.name || item.resource}}</h5>
-                    <p><a href="#" class="btn btn-embossed {{item.isDirectory ? 'btn-info' : 'btn-success'}} {{item.attribute}}"
-                          role="button" ng-click="enter(item)">{{item.isDirectory ? "Open Folder": "Play ." + item.attribute + "(" +
+                    <a href="{{item.isDirectory ? '/' + item.resource : '/' + previousLocation + '?play=' + item.url}}"
+                       class="btn btn-embossed {{item.isDirectory ? 'btn-info' : 'btn-success'}} {{item.attribute}}"
+                       role="button" ng-click="enter(item);">{{item.isDirectory ? "Open Folder": "Play ." +
+                        item.attribute + "(" +
                         sizeConvert(item.size) + ")"}}</a>
                 </div>
             </div>
         </div>
     </div>
+
+    <footer class="row panel" style="text-align: center">
+        MIT licensed, everyone has rights to edit <a href="http://github.com/co3moz/thechiptune">thechiptune.com&trade;</a>
+    </footer>
 </div>
 
 </body>
+<script src="/vendor/libopenmpt.min.js"></script>
+<script src="/vendor/chiptune2.js"></script>
+<script src="/component/utils.js"></script>
 <script src="/component/main.js"></script>
 </html>

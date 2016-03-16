@@ -1,8 +1,27 @@
 .navbar-mine {
-    background-color: #34495E;
+    background-color: #4F8AC5;
     background-image: none;
-    box-shadow: 0 2px 14px #2B3D50;
+    box-shadow: 0 0px 6px #B6B6B6;
     margin-top: 10px;
+}
+
+.navbar-text {
+    color: #FFFFFF;
+    background: #3F668D;
+    border-radius: 10px;
+    line-height: 0;
+    margin-top: 12px;
+    padding: 15px 5px;
+    font-size: 9pt;
+}
+
+.navbar-brand {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 300;
+}
+
+.navbar-brand:hover {
+    color: #BCFC18 !important;
 }
 
 .progress-mine {
@@ -22,7 +41,7 @@ h5 {
 
 .btn-mine {
     color: #fff !important;
-    background-color: #34495e !important;
+    background-color: #3F668D !important;
 }
 
 .btn-mine:hover, .btn-mine.hover, .btn-mine:focus, .btn-mine:active, .btn-mine.active, .open > .dropdown-toggle.btn-mine {
@@ -62,4 +81,12 @@ body {
 .s3m {
     color: #fff;
     background-color: #cc2833;
+}
+
+.playing {
+    background-color: rgba(29, 67, 243, 0.08);
+}
+
+.minutes {
+    margin-left: -10px !important;
 }
