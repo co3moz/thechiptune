@@ -94,8 +94,7 @@ body {
 }
 
 .gl {
-    height: 25px;
+    height: 31px;
     width: 100px;
-    transform: translateX(-10px) translateY(8px);
-    background-color: black;
+    transform: translateX(-10px) translateY(10px);
 }

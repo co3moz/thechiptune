@@ -2,6 +2,43 @@ var app = angular.module("theChiptuneApplication", []);
 app.value('$sniffer', {history: true});
 app.controller("mainController", function ($scope, $http, $location, $browser) {
   var player = new ChiptuneJsPlayer();
+
+  $http.get('/component/fragment/player.frag').success(function(data) {
+    var analyser = player.context.createAnalyser();
+    var bufferLength = (analyser.fftSize = 64);
+    var dataArray = new Uint8Array(bufferLength);
+    var floatArray = new Float32Array(dataArray);
+
+    if(player.currentPlayingNode) {
+      player.currentPlayingNode.disconnect();
+      player.currentPlayingNode.connect(analyser);
+    }
+
+    player.destination = analyser;
+    analyser.connect(player.context.destination);
+
+    (function draw() {
+      analyser.getByteTimeDomainData(dataArray);
+      for(var i = 0; i < bufferLength; i++) {
+        if(floatArray[i] == 0) floatArray[i] = 1.0;
+        floatArray[i] = (floatArray[i] * 2.0 + dataArray[i] * dataArray[i] / floatArray[i]) / 3.0;
+      }
+      requestAnimationFrame(draw);
+    })();
+
+    Glsl({
+      canvas: document.getElementsByClassName("gl")[0],
+      fragment: data,
+      variables: {
+        data: floatArray
+      },
+      update: function (time, delta) {
+        this.sync("data");
+      }
+    }).start();
+  });
+
+
   var location = $location.path().split("/");
   location.shift();
   if (location[0].length == "") {
@@ -33,6 +70,22 @@ app.controller("mainController", function ($scope, $http, $location, $browser) {
     var minutes = number / 60 >> 0;
     var seconds = number % 60 >> 0;
     return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+  };
+
+  $scope.biquadMode = false;
+  $scope.biquadToggle = function() {
+    if($scope.biquadMode == false) {
+      var biquadFilter = player.context.createBiquadFilter();
+      player.currentPlayingNode.disconnect();
+      player.destination = biquadFilter;
+      player.currentPlayingNode.connect(biquadFilter);
+      biquadFilter.connect(player.context.destination);
+    } else {
+      player.currentPlayingNode.disconnect();
+      player.destination = player.context.destination;
+      player.currentPlayingNode.connect(player.destination);
+    }
+    $scope.biquadMode = !$scope.biquadMode;
   };
 
   var currentLocationOfMusic = 0.0;
@@ -85,7 +138,8 @@ app.controller("mainController", function ($scope, $http, $location, $browser) {
     $scope.branch();
   };
 
-  $scope.enter = function (item) {
+  $scope.enter = function (item, e) {
+    if(e) e.preventDefault();
     if (item.isDirectory == true) {
       return $scope.branch(item.resource);
     } else {

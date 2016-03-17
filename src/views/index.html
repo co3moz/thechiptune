@@ -18,9 +18,6 @@
     <link href="/css/main.css" rel="stylesheet" type="text/css">
     <link href='https://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
 
-    <!-- show me handsome libraries-->
-    <script src="/vendor/angular.js"></script>
-
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -39,7 +36,7 @@
     <nav class="navbar navbar-inverse navbar-embossed navbar-mine">
 
         <div class="navbar-header">
-            <a class="navbar-brand" href="#" ng-click="home()">thechiptune.com</a>
+            <a class="navbar-brand" href="#" ng-click="biquadToggle()">thechiptune.com</a>
         </div>
 
         <form class="navbar-form navbar-right">
@@ -50,7 +47,7 @@
 
         <div class="navbar-right">
             <p class="navbar-text" ng-if="playing">{{playing}}</p>
-            <canvas class="gl" style="display: none"></canvas>
+            <canvas class="gl"></canvas>
             <p class="navbar-text minutes" ng-if="playing">{{numberToMinutes(currentLocationOfMusic)}}/{{numberToMinutes(duration)}}</p>
             <button class="btn navbar-btn btn-mine btn-xs" type="button" ng-if="!isPlaying" ng-click="play()">
                 <span class="glyphicon glyphicon-play"></span>
@@ -98,7 +95,7 @@
                     <h5>{{item.name || item.resource}}</h5>
                     <a href="{{item.isDirectory ? '/' + item.resource : '/' + previousLocation + '?play=' + item.url}}"
                        class="btn btn-embossed {{item.isDirectory ? 'btn-info' : 'btn-success'}} {{item.attribute}}"
-                       role="button" ng-click="enter(item);">{{item.isDirectory ? "Open Folder": "Play ." +
+                       role="button" ng-click="enter(item, $event);">{{item.isDirectory ? "Open Folder": "Play ." +
                         item.attribute + "(" +
                         sizeConvert(item.size) + ")"}}</a>
                 </div>
@@ -112,8 +109,11 @@
 </div>
 
 </body>
+<!-- show me handsome libraries-->
+<script src="/vendor/angular.js"></script>
 <script src="/vendor/libopenmpt.min.js"></script>
 <script src="/vendor/chiptune2.js"></script>
+<script src="/vendor/glsl.js"></script>
 <script src="/component/utils.js"></script>
 <script src="/component/main.js"></script>
 </html>

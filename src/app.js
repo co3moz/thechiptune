@@ -13,10 +13,6 @@ console.log(straightLine);
 var app = express();
 console.log('Express initialized');
 
-app.use('/resource/get/', express.static(__dirname + '/../resources'));
-app.use(express.static(__dirname + '/public'));
-console.log('Static field forwarded');
-
 app.use(compression({
   filter: function (req, res) {
     if (req.headers['x-no-compression']) {
@@ -26,6 +22,10 @@ app.use(compression({
     return compression.filter(req, res)
   }
 }));
+
+app.use('/resource/get/', express.static(__dirname + '/../resources'));
+app.use(express.static(__dirname + '/public'));
+console.log('Static field forwarded');
 
 require('./util/init')(app);
 
