@@ -1,199 +1,259 @@
-var app = angular.module("theChiptuneApplication", []);
-app.value('$sniffer', {history: true});
-app.controller("mainController", function ($scope, $http, $location, $browser) {
-  var player = new ChiptuneJsPlayer();
+require(['/component/fragment/player.js', '/component/favorite.js', '/vendor/angular.js', '/vendor/chiptune2.js', '/vendor/libopenmpt.min.js', '/component/utils.js', '/vendor/sweetalert.min.js'], function (fragmentPlayer, favorite) {
+  var app = angular.module("theChiptuneApplication", []);
+  //app.value('$sniffer', {history: true});
+  app.controller("mainController", function ($scope, $http, $location, $browser) {
+    var player = new ChiptuneJsPlayer();
+    fragmentPlayer($http, player);
 
-  $http.get('/component/fragment/player.frag').success(function(data) {
-    var analyser = player.context.createAnalyser();
-    var bufferLength = (analyser.fftSize = 64);
-    var dataArray = new Uint8Array(bufferLength);
-    var floatArray = new Float32Array(dataArray);
-
-    if(player.currentPlayingNode) {
-      player.currentPlayingNode.disconnect();
-      player.currentPlayingNode.connect(analyser);
+    $scope.favorites = favorite.getList();
+    var location = $location.path().split("/");
+    location.shift();
+    if (location[0].length == "") {
+      location.shift();
     }
 
-    player.destination = analyser;
-    analyser.connect(player.context.destination);
+    $scope.branch = function (url, completed) {
+      if (url && url.length != 0) location.push(url);
+      if (this != "first") $browser.url("/" + location.join("/"));
+      $http({
+        method: "GET",
+        url: "/resource/" + location.join("/")
+      }).then(function (response) {
+        $scope.locationLength = location.length;
+        $scope.previousLocation = location[location.length - 1] || "/";
+        $scope.location = location.join('/');
+        response.data.forEach(function (item) {
+          item.url = location.join("/") + "/" + btoa(item.resource).replace(/=/g, '');
+          if (item.isDirectory == false) {
+            var dot = item.resource.lastIndexOf(".");
+            item.attribute = item.resource.substring(dot + 1);
+            item.name = item.resource.substring(0, dot);
+            item.favorite = favorite.hasIn(item);
+          }
+        });
+        $scope.items = response.data;
 
-    (function draw() {
-      analyser.getByteTimeDomainData(dataArray);
-      for(var i = 0; i < bufferLength; i++) {
-        if(floatArray[i] == 0) floatArray[i] = 1.0;
-        floatArray[i] = (floatArray[i] * 2.0 + dataArray[i] * dataArray[i] / floatArray[i]) / 3.0;
-      }
-      requestAnimationFrame(draw);
-    })();
-
-    Glsl({
-      canvas: document.getElementsByClassName("gl")[0],
-      fragment: data,
-      variables: {
-        data: floatArray
-      },
-      update: function (time, delta) {
-        this.sync("data");
-      }
-    }).start();
-  });
-
-
-  var location = $location.path().split("/");
-  location.shift();
-  if (location[0].length == "") {
-    location.shift();
-  }
-
-  $scope.branch = function (url) {
-    if (url && url.length != 0) location.push(url);
-    $browser.url("/" + location.join("/"));
-    $http({
-      method: "GET",
-      url: "/resource/" + location.join("/")
-    }).then(function (response) {
-      $scope.locationLength = location.length;
-      $scope.previousLocation = location[location.length - 1] || "/";
-      response.data.forEach(function (item) {
-        if (item.isDirectory == false) {
-          var dot = item.resource.lastIndexOf(".");
-          item.attribute = item.resource.substring(dot + 1);
-          item.name = item.resource.substring(0, dot);
-          item.url = btoa(item.resource).replace(/=/g,'');
+        if (completed) {
+          completed();
         }
       });
-      $scope.items = response.data;
-    });
-  };
+    };
 
-  $scope.numberToMinutes = function(number) {
-    var minutes = number / 60 >> 0;
-    var seconds = number % 60 >> 0;
-    return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
-  };
 
-  $scope.biquadMode = false;
-  $scope.biquadToggle = function() {
-    if($scope.biquadMode == false) {
-      var biquadFilter = player.context.createBiquadFilter();
-      player.currentPlayingNode.disconnect();
-      player.destination = biquadFilter;
-      player.currentPlayingNode.connect(biquadFilter);
-      biquadFilter.connect(player.context.destination);
-    } else {
-      player.currentPlayingNode.disconnect();
-      player.destination = player.context.destination;
-      player.currentPlayingNode.connect(player.destination);
-    }
-    $scope.biquadMode = !$scope.biquadMode;
-  };
-
-  var currentLocationOfMusic = 0.0;
-  var intervalSpeed = 1000;
-  setInterval(function () {
-    if ($scope.isPlaying) {
-      $scope.percent = Math.min(100, currentLocationOfMusic / $scope.duration * 100);
-      $scope.currentLocationOfMusic = currentLocationOfMusic;
-      currentLocationOfMusic += intervalSpeed / 1000;
-      currentLocationOfMusic = currentLocationOfMusic % $scope.duration;
-      $scope.$apply();
-    }
-  }, intervalSpeed);
-
-  player.onEnded(function() {
-    currentLocationOfMusic = $scope.duration;
-    $scope.isPlaying = false;
-    if($scope.isAuto) {
-      var index = $scope.orderedItems.findIndex(function(item) {
-        return item == $scope.playingItem;
-      });
-
-      if(index != -1 && index + 2 <= $scope.orderedItems.length) {
-        $scope.enter($scope.orderedItems[index + 1]);
+    $scope.currentLocationOfMusic = 0.0;
+    var intervalSpeed = 1000;
+    setInterval(function () {
+      if ($scope.isPlaying) {
+        $scope.currentLocationOfMusic = ($scope.currentLocationOfMusic + intervalSpeed / 1000) % $scope.duration;
+        $scope.$apply();
       }
-    }
-  });
+    }, intervalSpeed);
 
-  $scope.play = function () {
-    if ($scope.isPlaying == false) {
-      player.unpause();
-      $scope.isPlaying = true;
-    }
-  };
-
-  $scope.pause = function () {
-    if ($scope.isPlaying == true) {
-      player.pause();
+    player.onEnded(function () {
+      var index;
+      $scope.currentLocationOfMusic = $scope.duration;
       $scope.isPlaying = false;
-    }
-  };
-
-  $scope.home = function () {
-    location = [];
-    $scope.branch();
-  };
-
-  $scope.branchUp = function () {
-    location.pop();
-    $scope.branch();
-  };
-
-  $scope.enter = function (item, e) {
-    if(e) e.preventDefault();
-    if (item.isDirectory == true) {
-      return $scope.branch(item.resource);
-    } else {
-      player.stop();
-      $scope.playing = item.resource;
-      $scope.replay = function () {
-        player.load("/resource/get/" + location.join("/") + "/" + encodeURI(item.resource), function (buffer) {
-          player.config.repeatCount = $scope.isLoop == true ? -1 : 0;
-          $scope.isPlaying = true;
-          $scope.playingItem = item;
-          player.play(buffer);
-          $scope.duration = player.duration();
-          currentLocationOfMusic = 0.0;
-          $browser.url("/" + location.join("/") + "?play=" + btoa(item.resource).replace(/=/g, "") + ($scope.isLoop == true ? "&loop=true" : ""));
+      if ($scope.isPlaylistAuto) {
+        var properties = Object.getOwnPropertyNames($scope.favorites);
+        index = properties.findIndex(function (item) {
+          if (item == 'length') return false;
+          return $scope.favorites[item].url == $scope.playingItem.url;
         });
-      };
 
+        if (index != -1 && index + 1 <= $scope.favorites.length) {
+          $scope.enter($scope.favorites[properties[index + 1]]);
+        }
+      } else if ($scope.isAuto) {
+        index = $scope.orderedItems.findIndex(function (item) {
+          return item == $scope.playingItem;
+        });
+
+        if (index != -1 && index + 2 <= $scope.orderedItems.length) {
+          $scope.enter($scope.orderedItems[index + 1]);
+        }
+      }
+    });
+
+    $scope.savePlaylist = function () {
+      if ($scope.favorites.length == 0) return;
+      $http({
+        method: 'POST',
+        url: '/favorites',
+        data: JSON.stringify($scope.favorites)
+      }).then(function (data) {
+        swal("Playlist saved!", "Your unique key: " + data.data + "\nKeep it, you need it when load", "success");
+      }).catch(function (data) {
+        swal("Error occurred", "Something happened when your playlist saving :(", "error");
+      });
+    };
+
+    $scope.loadPlaylist = function () {
+      swal({
+        title: "Load playlist",
+        text: "Please put your unique playlist key:",
+        type: "input",
+        showCancelButton: true,
+        showLoaderOnConfirm: true,
+        closeOnConfirm: false,
+        animation: "slide-from-top",
+        inputPlaceholder: "unique key"
+      }, function (inputValue) {
+        if (inputValue === false) return false;
+        if (inputValue === "") {
+          swal.showInputError("You need to write something!");
+          return false
+        }
+
+        $http({
+          method: 'GET',
+          url: '/favorites/' + inputValue
+        }).then(function (data) {
+          if ($scope.favorites.length > 0) {
+            swal({
+              title: "What i should do?",
+              text: "You have own favorites, should i append the list? or delete the old ones and load new!",
+              type: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#DD6B55",
+              confirmButtonText: "Override the list",
+              cancelButtonText: "No, just append",
+              closeOnConfirm: false,
+              closeOnCancel: false
+            }, function (isConfirm) {
+              if (isConfirm) {
+                favorite.clearList();
+                favorite.loadFrom(data);
+                swal("Playlist loaded!", "Previous playlist overloaded with new one", "success");
+              } else {
+                favorite.loadFrom(data);
+                swal("Playlist loaded!", "All tracks added to your playlist", "success");
+              }
+            });
+          } else {
+            favorite.loadFrom(data);
+            swal("Playlist loaded!", "All tracks added to your playlist", "success");
+          }
+        }).catch(function (data) {
+          swal("Error occurred", "Invalid unique playlist key, please validate your key", "error");
+        })
+      });
+    };
+
+    $scope.favorite = function (item) {
+      item.favorite = !item.favorite;
+      favorite.toggle(item);
+    };
+
+    $scope.play = function () {
+      if ($scope.isPlaying == false) {
+        player.unpause();
+        $scope.isPlaying = true;
+      }
+    };
+
+    $scope.pause = function () {
+      if ($scope.isPlaying == true) {
+        player.pause();
+        $scope.isPlaying = false;
+      }
+    };
+
+    $scope.home = function () {
+      location = [];
+      $scope.branch();
+    };
+
+    $scope.branchUp = function () {
+      location.pop();
+      $scope.branch();
+    };
+
+    $scope.enter = function (item, e) {
+      if (e) e.preventDefault();
+      var self = this;
+      if (item.isDirectory == true) {
+        return $scope.branch(item.resource);
+      } else {
+        function playMusic () {
+          player.stop();
+          $scope.playing = item.resource;
+          ($scope.replay = function () {
+            player.load("/resource/get/" + location.join("/") + "/" + encodeURI(item.resource), function (buffer) {
+              player.config.repeatCount = $scope.isLoop == true ? -1 : 0;
+              $scope.isPlaying = true;
+              $scope.playingItem = item;
+              player.play(buffer);
+              $scope.duration = player.duration();
+              $scope.currentLocationOfMusic = 0.0;
+              $scope.$apply();
+              if (self != "first") $browser.url("/" + location.join("/") + "/" + btoa(item.resource).replace(/=/g, "") + ($scope.isLoop == true ? "&loop=true" : ""));
+            });
+          })();
+        }
+
+        if (item.url) {
+          var pp = item.url.split('/');
+          pp.pop();
+          if (pp.join("/") == location.join("/")) {
+            playMusic();
+          } else {
+            location = pp;
+            $scope.branch(undefined, function () {
+              playMusic();
+            });
+          }
+        } else {
+          playMusic();
+        }
+      }
+    };
+
+    var directPlay = location[location.length - 1];
+    $scope.isLoop = !!($location.search().loop || false);
+
+    $scope.loop = function (value) {
+      if (!$scope.replay) return;
+      $scope.isLoop = value;
       $scope.replay();
+    };
+
+    $scope.isAuto = false;
+    $scope.isPlaylistAuto = false;
+    $scope.auto = function (value) {
+      $scope.isAuto = value;
+      if (value == true) {
+        $scope.isPlaylistAuto = false;
+      }
+    };
+
+    $scope.playListAutoToggle = function () {
+      $scope.isPlaylistAuto = !$scope.isPlaylistAuto;
+      if ($scope.isPlaylistAuto == true) {
+        $scope.isAuto = false;
+      }
+    };
+
+    try {
+      directPlay = atob(directPlay);
+      location.pop();
+
+      if (directPlay.trim() == "") {
+        throw 1;
+      }
+
+      $scope.branch.call("first", undefined, function () {
+        var index = $scope.items.findIndex(function (item) {
+          return item.resource == directPlay;
+        });
+        if (index != -1) {
+          $scope.enter.call("first", $scope.items[index]);
+        }
+      });
+    } catch (e) {
+      $scope.branch();
     }
-  };
 
-  $scope.sizeConvert = function (size) {
-    if (size < 1024) {
-      return size + "b";
-    }
-
-    if (size < 1024 * 1024) {
-      return (size / 1024).toFixed(2) + "kb";
-    }
-
-    if (size < 1024 * 1024 * 1024) {
-      return (size / 1024 / 1024).toFixed(2) + "mb";
-    }
-
-    return (size / 1024 / 1024 / 1024).toFixed(2) + "gb";
-  };
-
-  var directPlay = $location.search().play;
-  $scope.isLoop = !!($location.search().loop || false);
-  $scope.branch();
-
-  $scope.loop = function (value) {
-    $scope.isLoop = value;
-    $scope.replay();
-  };
-
-  $scope.isAuto = false;
-  $scope.auto = function (value) {
-    $scope.isAuto = value;
-  };
-
-  if (directPlay) {
-    $scope.enter({resource: atob(directPlay), isDirectory: false});
-  }
-}).config(function ($locationProvider) {
-  $locationProvider.html5Mode(true).hashPrefix('!');
+  }).config(function ($locationProvider) {
+    $locationProvider.html5Mode(true).hashPrefix('!');
+  });
 });

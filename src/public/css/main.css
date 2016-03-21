@@ -70,9 +70,25 @@ body {
     background-color: #cc5099;
 }
 
+.xm:hover, .xm:focus {
+    background-color: #9e3e77;
+}
+
+.xm:target, .xm:active {
+    background-color: #883566 !important;
+}
+
 .mod {
     color: #fff;
     background-color: #815ecc;
+}
+
+.mod:hover, .mod:focus {
+    background-color: #6949a3;
+}
+
+.mod:target, .mod:active {
+    background-color: #553b84 !important;
 }
 
 .it {
@@ -80,13 +96,33 @@ body {
     background-color: #cc8c6e;
 }
 
+.it:hover, .it:focus {
+    background-color: #94634a;
+}
+
+.it:target, .it:active {
+    background-color: #775240 !important;
+}
+
 .s3m {
     color: #fff;
-    background-color: #cc2833;
+    background-color: #0888A4;
+}
+
+.s3m:hover, .s3m:focus {
+    background-color: #066c81;
+}
+
+.s3m:target, .s3m:active {
+    background-color: #043c48 !important;
 }
 
 .playing {
-    background-color: rgba(29, 67, 243, 0.08);
+    background-color: rgb(3, 105, 191);
+}
+
+.playing > div {
+    color: white !important;
 }
 
 .minutes {
@@ -97,4 +133,109 @@ body {
     height: 31px;
     width: 100px;
     transform: translateX(-10px) translateY(10px);
+}
+
+.caption {
+    text-align: center;
+}
+
+.btn-love {
+    color: white !important;
+}
+
+.btn-dislike {
+    color: #4B7FB3 !important;
+}
+
+.btn-love:focus {
+    color: white !important;
+}
+
+.btn-dislike:focus {
+    color: #4B7FB3 !important;
+}
+
+.favorites {
+    width: 50px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: #0e96c8;
+    z-index: 998;
+    transition: all 0.5s ease;
+    box-shadow: 0 0 10px #333;
+    -webkit-user-select: none;
+    user-select: none;
+    -moz-user-select: none;
+    overflow-x: hidden;
+    overflow-y: hidden;
+
+    padding: 0;
+    margin: 0;
+}
+
+.favorites:hover {
+    width: 400px;
+    overflow-y: auto;
+}
+
+.favorites > ul {
+    display: table;
+    color: white;
+    padding: 0;
+    margin: 0;
+    width: 400px;
+}
+
+.favorites > ul > li {
+    display: table-row;
+}
+
+.favorites > ul > li:hover {
+    background-color: #0d82ad;
+}
+
+.favorites > ul > li > div {
+    display: table-cell;
+    cursor: pointer;
+    vertical-align: middle !important;
+}
+
+.favorites > ul > li > div:nth-child(1) {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+}
+
+.favorites > ul > li > div:nth-child(2) {
+    width: 350px;
+    text-align: left;
+    height: 50px;
+}
+
+.favorites > ul > li > div > div.three {
+    width: 116.6666px;
+    text-align: center;
+    display: table-cell;
+}
+
+.favorites > ul > li > div > div.three:hover {
+    background-color: #0f95c7;
+}
+
+.favoritePlaying {
+    background-color: #23e2f9;
+}
+
+.favoritePlaying:hover {
+    background-color: #21d2e8 !important;
+}
+
+.autoPlaylistOn {
+    background-color: #10A8E0;
+}
+
+.autoPlaylistOn:hover {
+    background-color: #0f95c7 !important;
 }

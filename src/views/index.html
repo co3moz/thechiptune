@@ -8,13 +8,15 @@
 
     <base href="/"/>
 
-    <title ng-bind="'thechiptune.com' + (playing ? ' - ' + playing : '')">thechiptune.com</title>
-    <meta name="description" content="{{playing}} listen now.">
+    <title ng-bind="'thechiptune.com' + (locationLength > 0 ? ' - ' +  location + ' ' : '') +  (playing ? ' - ' + playing : '')">
+        thechiptune.com</title>
+    <meta name="description" content="{{playing}} listen now. File length {{duration.toMinutes()}}">
     <link rel="author" href="http://github.com/co3moz"/>
 
     <!-- show me fancy styles-->
     <link href="/css/bootstrap.min.css" rel="stylesheet" type="text/css">
     <link href="/css/flat-ui.min.css" rel="stylesheet" type="text/css">
+    <link href="/css/sweetalert.css" rel="stylesheet" type="text/css">
     <link href="/css/main.css" rel="stylesheet" type="text/css">
     <link href='https://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
 
@@ -26,29 +28,44 @@
     <![endif]-->
 </head>
 <body>
-<div ng-if="false" style="position:fixed;width: 100%;height: 100%;background-color: #353535;color: white;z-index: 999;" class="ng-scope">
+<div ng-if="false" style="position:fixed;width: 100%;height: 100%;background-color: #353535;color: white;z-index: 999;"
+     class="ng-scope">
     <span style="position: fixed;top: 50%;left: 50%;transform: translateX(-50%) translateY(-50%);font-family: Raleway, monospace;font-weight: 300;border-radius: 15px;box-shadow: 0 0 31px black;padding: 10px;background-color: rgba(255, 255, 255, 0.12);">
         loading.. please wait
     </span>
+</div>
+
+<div class="favorites">
+    <ul>
+        <li>
+            <div onclick="console.log('hi');">ctrl</div>
+            <div>
+                <div class="three {{isPlaylistAuto ? 'autoPlaylistOn': ''}}" ng-click="playListAutoToggle()">auto</div>
+                <div class="three" ng-click="savePlaylist()">save</div>
+                <div class="three" ng-click="loadPlaylist()">load</div>
+            </div>
+        </li>
+
+        <li ng-repeat="(name, value) in favorites" class="{{playingItem.name == value.name ? 'favoritePlaying':''}}"
+            ng-if="name != 'length'">
+            <div ng-bind="$index"></div>
+            <div ng-bind="value.name" ng-click="enter(value)"></div>
+        </li>
+    </ul>
 </div>
 
 <div class="container">
     <nav class="navbar navbar-inverse navbar-embossed navbar-mine">
 
         <div class="navbar-header">
-            <a class="navbar-brand" href="#" ng-click="biquadToggle()">thechiptune.com</a>
+            <a class="navbar-brand" href="#" ng-click="branchUp()">thechiptune.com</a>
         </div>
-
-        <form class="navbar-form navbar-right">
-            <div class="progress progress-mine">
-                <div class="progress-bar" style="width: {{percent}}%;"></div>
-            </div>
-        </form>
 
         <div class="navbar-right">
             <p class="navbar-text" ng-if="playing">{{playing}}</p>
             <canvas class="gl"></canvas>
-            <p class="navbar-text minutes" ng-if="playing">{{numberToMinutes(currentLocationOfMusic)}}/{{numberToMinutes(duration)}}</p>
+            <p class="navbar-text minutes" ng-if="playing">
+                {{currentLocationOfMusic.toMinutes()}}/{{duration.toMinutes()}}</p>
             <button class="btn navbar-btn btn-mine btn-xs" type="button" ng-if="!isPlaying" ng-click="play()">
                 <span class="glyphicon glyphicon-play"></span>
             </button>
@@ -75,6 +92,11 @@
                     ng-if="isAuto == true" ng-click="auto(false)" title="Auto play next: on">
                 <span class="glyphicon glyphicon-sort-by-attributes"></span>
             </button>
+
+            <button class="btn navbar-btn btn-mine btn-xs {{playingItem.favorite == true ? 'btn-love' : 'btn-dislike'}}"
+                    type="button" title="Favorite?" ng-click="favorite(playingItem)" style="margin-right: 35px!important">
+                <span class="glyphicon glyphicon-heart"></span>
+            </button>
         </div>
     </nav>
 </div>
@@ -89,31 +111,36 @@
             </div>
         </div>
 
-        <div class="col-sm-3 col-md-3 " ng-repeat="item in (orderedItems = (items | orderBy : ['-isDirectory', 'size']))">
+        <div class="col-sm-3 col-md-3 "
+             ng-repeat="item in (orderedItems = (items | orderBy : ['-isDirectory', 'size'] ))">
             <div class="thumbnail {{playing == item.resource ? 'playing' :''}}">
-                <div class="caption" style="text-align: center;">
+                <div class="caption">
                     <h5>{{item.name || item.resource}}</h5>
-                    <a href="{{item.isDirectory ? '/' + item.resource : '/' + previousLocation + '?play=' + item.url}}"
-                       class="btn btn-embossed {{item.isDirectory ? 'btn-info' : 'btn-success'}} {{item.attribute}}"
-                       role="button" ng-click="enter(item, $event);">{{item.isDirectory ? "Open Folder": "Play ." +
-                        item.attribute + "(" +
-                        sizeConvert(item.size) + ")"}}</a>
+                    <div class="btn-group" role="group">
+                        <a href="{{item.url}}"
+                           class="btn btn-embossed btn-sm {{item.isDirectory ? 'btn-info' : 'btn-success'}} {{item.attribute}}"
+                           role="button" ng-click="enter(item, $event);">
+                            {{item.isDirectory ? "Open Folder": "Play ." + item.attribute + "(" +
+                            item.size.sizeConvert() + ")"}}</a>
+                        <a ng-if="item.isDirectory == false"
+                           class="btn btn-sm {{item.favorite == true ? 'btn-danger' : 'btn-default'}}"
+                           role="button" ng-click="favorite(item)"><span class="glyphicon glyphicon-heart"></span></a>
+                    </div>
+
+
                 </div>
             </div>
         </div>
     </div>
 
     <footer class="row panel" style="text-align: center">
-        MIT licensed, everyone has rights to edit <a href="http://github.com/co3moz/thechiptune">thechiptune.com&trade;</a>
+        MIT licensed, everyone has rights to edit <a
+            href="http://github.com/co3moz/thechiptune">thechiptune.com&trade;</a>
     </footer>
 </div>
 
 </body>
 <!-- show me handsome libraries-->
-<script src="/vendor/angular.js"></script>
-<script src="/vendor/libopenmpt.min.js"></script>
-<script src="/vendor/chiptune2.js"></script>
-<script src="/vendor/glsl.js"></script>
-<script src="/component/utils.js"></script>
+<script src="/vendor/require.min.js"></script>
 <script src="/component/main.js"></script>
 </html>

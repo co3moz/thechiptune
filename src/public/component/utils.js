@@ -20,3 +20,25 @@ if (!Array.prototype.findIndex) {
     return -1;
   };
 }
+
+Number.prototype.toMinutes = function () {
+  var minutes = this / 60 >> 0;
+  var seconds = this % 60 >> 0;
+  return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+};
+
+Number.prototype.sizeConvert = function () {
+  if (this < 1024) {
+    return this + "b";
+  }
+
+  if (this < 1024 * 1024) {
+    return (this / 1024).toFixed(2) + "kb";
+  }
+
+  if (this < 1024 * 1024 * 1024) {
+    return (this / 1024 / 1024).toFixed(2) + "mb";
+  }
+
+  return (this / 1024 / 1024 / 1024).toFixed(2) + "gb";
+};
